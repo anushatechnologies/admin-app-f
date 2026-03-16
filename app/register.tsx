@@ -16,48 +16,34 @@ import {
     View,
     Image,
 } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { loginAPI } from '../src/api/auth';
-import { COLORS, SPACING, BORDER_RADIUS, TYPOGRAPHY, SHADOWS } from '@/src/constants/theme';
+import { registerAPI } from '../src/api/auth';
+import { COLORS, SPACING, BORDER_RADIUS } from '@/src/constants/theme';
 
-export default function LoginScreen() {
+export default function RegisterScreen() {
 
   const router = useRouter();
+  const emailRef = useRef<TextInput>(null);
   const passwordRef = useRef<TextInput>(null);
 
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [secure, setSecure] = useState(true);
 
-  const handleLogin = async () => {
+  const handleRegister = async () => {
 
-    if (!email || !password) {
-      Alert.alert('Error', 'Please enter email and password');
+    if (!name || !email || !password) {
+      Alert.alert('Error', 'Please fill all fields');
       return;
     }
 
     try {
-      const response = await loginAPI(email, password);
-      
-      const authToken = (response as any).jwt || response.token || (response as any).accessToken;
-      
-      if (response && authToken) {
-        await AsyncStorage.setItem('adminToken', authToken);
-        
-        // Check if user object is nested, or if properties are root-level
-        const userData = response.user || {
-          name: (response as any).name || 'Admin',
-          email: (response as any).email || email,
-          role: (response as any).role || 'ADMIN',
-        };
-        
-        await AsyncStorage.setItem('adminUser', JSON.stringify(userData));
-      }
-      
-      Keyboard.dismiss();
-      router.replace('/(tabs)/home');
+      await registerAPI(name, email, password);
+      Alert.alert('Success', 'Account created successfully! Please login.', [
+        { text: 'OK', onPress: () => router.replace('/login') }
+      ]);
     } catch (error: any) {
-      Alert.alert('Login Failed', error.message || 'Incorrect email or password');
+      Alert.alert('Registration Failed', error.message || 'Something went wrong');
     }
 
   };
@@ -96,41 +82,53 @@ export default function LoginScreen() {
                 </View>
               </View>
 
+              <Text style={styles.subtitle}>Create Account: Join AnushaBazaar Admin</Text>
+
+              {/* Name */}
+              <View style={styles.inputContainer}>
+                <Ionicons name="person-outline" size={20} color={COLORS.textSecondary} />
+                <TextInput
+                  placeholder="Full Name"
+                  placeholderTextColor={COLORS.textSecondary}
+                  style={styles.input}
+                  value={name}
+                  onChangeText={setName}
+                  returnKeyType="next"
+                  onSubmitEditing={() => emailRef.current?.focus()}
+                />
+              </View>
+
               {/* Email */}
               <View style={styles.inputContainer}>
                 <Ionicons name="mail-outline" size={20} color={COLORS.textSecondary} />
-
                 <TextInput
-                  placeholder="Enter your email"
+                  ref={emailRef}
+                  placeholder="Email Address"
                   placeholderTextColor={COLORS.textSecondary}
                   style={styles.input}
                   keyboardType="email-address"
                   autoCapitalize="none"
-                  returnKeyType="next"
                   value={email}
                   onChangeText={setEmail}
+                  returnKeyType="next"
                   onSubmitEditing={() => passwordRef.current?.focus()}
                 />
-
               </View>
 
               {/* Password */}
               <View style={styles.inputContainer}>
-
                 <Ionicons name="lock-closed-outline" size={20} color={COLORS.textSecondary} />
-
                 <TextInput
                   ref={passwordRef}
-                  placeholder="Enter your password"
+                  placeholder="Password"
                   placeholderTextColor={COLORS.textSecondary}
                   style={styles.input}
                   secureTextEntry={secure}
-                  returnKeyType="done"
                   value={password}
                   onChangeText={setPassword}
-                  onSubmitEditing={handleLogin}
+                  returnKeyType="done"
+                  onSubmitEditing={handleRegister}
                 />
-
                 <TouchableOpacity onPress={() => setSecure(!secure)}>
                   <Ionicons
                     name={secure ? 'eye-off-outline' : 'eye-outline'}
@@ -138,29 +136,22 @@ export default function LoginScreen() {
                     color={COLORS.textSecondary}
                   />
                 </TouchableOpacity>
-
               </View>
 
-              {/* Login Button */}
+              {/* Register Button */}
               <TouchableOpacity
-                style={styles.loginButton}
-                onPress={handleLogin}
+                style={styles.registerButton}
+                onPress={handleRegister}
               >
-                <Text style={styles.loginText}>Login</Text>
+                <Text style={styles.registerText}>Sign Up</Text>
               </TouchableOpacity>
 
-              <View style={styles.linksContainer}>
-                <TouchableOpacity onPress={() => router.push('/forgot-password')}>
-                  <Text style={styles.linkText}>Forgot Password?</Text>
-                </TouchableOpacity>
-                <TouchableOpacity onPress={() => router.push('/register')}>
-                  <Text style={styles.linkText}>Register</Text>
+              <View style={styles.footerLinks}>
+                <Text style={{ color: COLORS.textSecondary }}>Already have an account? </Text>
+                <TouchableOpacity onPress={() => router.push('/login')}>
+                  <Text style={styles.linkText}>Login</Text>
                 </TouchableOpacity>
               </View>
-
-              <Text style={styles.footer}>
-                © 2026 AnushaBazaar
-              </Text>
 
             </View>
 
@@ -173,6 +164,8 @@ export default function LoginScreen() {
   );
 }
 
+/* ================= STYLES ================= */
+
 const styles = StyleSheet.create({
 
   container: {
@@ -183,7 +176,7 @@ const styles = StyleSheet.create({
   scroll: {
     flexGrow: 1,
     justifyContent: 'center',
-    padding: SPACING.lg,
+    padding: SPACING.lg + 1,
   },
 
   inner: {
@@ -199,91 +192,86 @@ const styles = StyleSheet.create({
   },
   logoWrapper: {
     backgroundColor: COLORS.white,
-    padding: SPACING.sm,
-    borderRadius: BORDER_RADIUS.lg,
-    ...SHADOWS.md,
+    padding: 6,
+    borderRadius: BORDER_RADIUS.md,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.1,
+    shadowRadius: 8,
+    elevation: 3,
   },
   logoImage: {
-    width: 80,
-    height: 80,
+    width: 60,
+    height: 60,
   },
   titleWrapper: {
     alignItems: 'flex-start',
   },
   brandTitle: {
-    fontSize: TYPOGRAPHY.size.xxl,
-    fontWeight: TYPOGRAPHY.weight.black,
+    fontSize: 20,
+    fontWeight: '900',
     color: COLORS.primary,
-    marginBottom: 2,
+    marginBottom: 0,
   },
   adminText: {
-    fontSize: TYPOGRAPHY.size.xs,
-    fontWeight: TYPOGRAPHY.weight.bold,
+    fontSize: 10,
+    fontWeight: '800',
     color: COLORS.textSecondary,
-    letterSpacing: 4,
+    letterSpacing: 2,
   },
   titleUnderline: {
-    width: 40,
-    height: 3,
+    width: 30,
+    height: 2,
     backgroundColor: COLORS.primary,
-    marginTop: SPACING.xs + 2,
+    marginTop: 4,
     borderRadius: BORDER_RADIUS.sm,
+  },
+  subtitle: {
+    textAlign: 'center',
+    color: COLORS.textSecondary,
+    marginBottom: SPACING.xl,
+    fontSize: 14,
   },
 
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.surfaceVariant,
+    backgroundColor: COLORS.surface,
     borderRadius: BORDER_RADIUS.md,
-    paddingHorizontal: SPACING.md,
-    paddingVertical: SPACING.sm + 2,
-    marginBottom: SPACING.md,
-    ...SHADOWS.sm,
-    borderWidth: 1,
-    borderColor: COLORS.border,
+    paddingHorizontal: SPACING.md - 2,
+    paddingVertical: SPACING.md - 2,
+    marginBottom: SPACING.md + 4,
   },
 
   input: {
     flex: 1,
     color: COLORS.text,
-    marginLeft: SPACING.sm,
-    fontSize: TYPOGRAPHY.size.md,
+    marginLeft: SPACING.md - 6,
   },
 
-  loginButton: {
+  registerButton: {
     backgroundColor: COLORS.primary,
     paddingVertical: SPACING.md,
     borderRadius: BORDER_RADIUS.md,
     alignItems: 'center',
-    marginTop: SPACING.sm,
-    ...SHADOWS.md,
+    marginTop: SPACING.sm + 2,
   },
 
-  loginText: {
-    fontWeight: TYPOGRAPHY.weight.bold,
-    fontSize: TYPOGRAPHY.size.md,
-    color: COLORS.white,
+  registerText: {
+    fontWeight: 'bold',
+    fontSize: 16,
+    color: COLORS.background,
   },
 
-  linksContainer: {
+  footerLinks: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginTop: SPACING.lg,
-    paddingHorizontal: SPACING.xs,
+    justifyContent: 'center',
+    marginTop: SPACING.lg + 6,
   },
 
   linkText: {
     color: COLORS.primary,
-    fontSize: TYPOGRAPHY.size.sm,
-    fontWeight: TYPOGRAPHY.weight.semibold,
-  },
-
-  footer: {
-    textAlign: 'center',
-    color: COLORS.textTertiary,
-    marginTop: SPACING.xl,
-    fontSize: TYPOGRAPHY.size.xs,
+    fontWeight: 'bold',
   },
 
 });
-;

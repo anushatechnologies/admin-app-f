@@ -1,86 +1,109 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
-import { SafeAreaProvider, useSafeAreaInsets } from 'react-native-safe-area-context';
-
-const ICON_SIZE = 24;
-
-const COLORS = {
-  background: '#25292e',
-  active: '#ffd33d',
-  inactive: '#888',
-};
-
-type TabItem = {
-  name: string;
-  activeIcon: keyof typeof Ionicons.glyphMap;
-  inactiveIcon: keyof typeof Ionicons.glyphMap;
-};
-
-const TABS: TabItem[] = [
-  { name: 'home', activeIcon: 'home', inactiveIcon: 'home-outline' },
-  { name: 'pulse', activeIcon: 'pulse', inactiveIcon: 'pulse-outline' },
-  { name: 'stores', activeIcon: 'storefront', inactiveIcon: 'storefront-outline' },
-  { name: 'kpi', activeIcon: 'bar-chart', inactiveIcon: 'bar-chart-outline' },
-  { name: 'profile', activeIcon: 'person', inactiveIcon: 'person-outline' },
-];
-
-function TabContent() {
-  const insets = useSafeAreaInsets();
-
-  return (
-    <View style={[styles.container, { paddingTop: insets.top }]}>
-      <Tabs
-        screenOptions={{
-          headerShown: false,
-          tabBarShowLabel: false,
-
-          tabBarActiveTintColor: COLORS.active,
-          tabBarInactiveTintColor: COLORS.inactive,
-
-          tabBarStyle: styles.tabBar,
-        }}
-      >
-        {TABS.map((tab) => (
-          <Tabs.Screen
-            key={tab.name}
-            name={tab.name}
-            options={{
-              tabBarIcon: ({ color, focused }) => (
-                <Ionicons
-                  name={focused ? tab.activeIcon : tab.inactiveIcon}
-                  size={ICON_SIZE}
-                  color={color}
-                />
-              ),
-            }}
-          />
-        ))}
-      </Tabs>
-    </View>
-  );
-}
+import { Platform, View, Image, Text, StyleSheet } from 'react-native';
+import { COLORS, SPACING, BORDER_RADIUS } from '@/src/constants/theme';
 
 export default function TabLayout() {
   return (
-    <SafeAreaProvider>
-      <TabContent />
-    </SafeAreaProvider>
+    <Tabs
+      screenOptions={{
+        tabBarActiveTintColor: COLORS.primary,
+        tabBarInactiveTintColor: COLORS.textSecondary,
+        headerShown: true,
+        headerTitle: () => (
+          <View style={styles.headerContainer}>
+            <Image
+              source={require('@/assets/images/logo.png')}
+              style={styles.headerLogo}
+              resizeMode="contain"
+            />
+            <Text style={styles.headerTitle}>AnushaBazaar Admin</Text>
+          </View>
+        ),
+        headerStyle: {
+          backgroundColor: COLORS.background,
+          elevation: 0,
+          shadowOpacity: 0,
+          borderBottomWidth: 1,
+          borderBottomColor: COLORS.border,
+        },
+        tabBarStyle: Platform.select({
+          ios: {
+            position: 'absolute',
+            backgroundColor: 'rgba(255,255,255,0.8)',
+          },
+          default: {
+            backgroundColor: COLORS.background,
+            borderTopWidth: 1,
+            borderTopColor: COLORS.border,
+            height: 60,
+            paddingBottom: 10,
+          },
+        }),
+      }}>
+      <Tabs.Screen
+        name="home"
+        options={{
+          title: 'Home',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'home' : 'home-outline'} size={24} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="stores"
+        options={{
+          title: 'Stores',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'storefront' : 'storefront-outline'} size={24} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="pulse"
+        options={{
+          title: 'Pulse',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'pulse' : 'pulse-outline'} size={24} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="kpi"
+        options={{
+          title: 'KPI',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'bar-chart' : 'bar-chart-outline'} size={24} color={color} />
+          ),
+        }}
+      />
+      <Tabs.Screen
+        name="profile"
+        options={{
+          title: 'Profile',
+          tabBarIcon: ({ color, focused }) => (
+            <Ionicons name={focused ? 'person' : 'person-outline'} size={24} color={color} />
+          ),
+        }}
+      />
+    </Tabs>
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.background,
+  headerContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: SPACING.sm,
   },
-
-  tabBar: {
-    backgroundColor: COLORS.background,
-    borderTopWidth: 0,
-    height: 60,
-    paddingBottom: 8,
-    paddingTop: 6,
+  headerLogo: {
+    width: 32,
+    height: 32,
   },
-});
+  headerTitle: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: COLORS.primary,
+  },
+});

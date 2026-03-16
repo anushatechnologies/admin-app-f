@@ -8,99 +8,19 @@ import {
   Text,
   TouchableOpacity,
   View,
+  ActivityIndicator,
 } from 'react-native';
 
-import InventoryPopup from '@/components/stores/inventory';
-import CommonAlertModal from '@/components/ToggleAlertModal';
-
-/* ================= TYPES ================= */
-
-export type Product = {
-  id: string;
-  name: string;
-  subCategory: string;
-  stock: number;
-  price: number;
-  sales: number;
-  image: string;
-  inStock: boolean;
-};
-
-export type Store = {
-  id: string;
-  name: string;
-  location: string;
-  image: string;
-  status: boolean;
-  products: Product[];
-};
+import InventoryPopup from '@/src/components/stores/inventory';
+import CommonAlertModal from '@/src/components/common/ToggleAlertModal';
+import { useStores } from '@/src/hooks/useStores';
+import { Store } from '@/src/types/api';
+import { COLORS, SPACING, BORDER_RADIUS, TYPOGRAPHY, SHADOWS } from '@/src/constants/theme';
 
 /* ================= DATA ================= */
 
-const storeData: Store[] = [
-  {
-    id: '1',
-    name: 'AnushaBazaar Store',
-    location: 'Hyderabad',
-    image: 'https://cdn-icons-png.flaticon.com/128/891/891462.png',
-    status: true,
-    products: [
-      {
-        id: '1',
-        name: 'Rice Bag',
-        subCategory: 'Groceries',
-        stock: 25,
-        price: 1200,
-        sales: 150,
-        image:
-          'https://5.imimg.com/data5/UB/WG/JK/SELLER-98634555/brown-plain-industrial-jute-sack-bag.jpg',
-        inStock: true,
-      },
-      {
-        id: '2',
-        name: 'Oil Bottle',
-        subCategory: 'Groceries',
-        stock: 10,
-        price: 150,
-        sales: 90,
-        image:
-          'https://m.media-amazon.com/images/I/61SQDzxSt3L.jpg',
-        inStock: false,
-      },
-    ],
-  },
-  {
-    id: '2',
-    name: 'Anusha Store',
-    location: 'Chennai',
-    image: 'https://cdn-icons-png.flaticon.com/128/891/891462.png',
-    status: false,
-    products: [
-      {
-        id: '3',
-        name: 'Rice Bag',
-        subCategory: 'Groceries',
-        stock: 5,
-        price: 1350,
-        sales: 60,
-        image:
-          'https://5.imimg.com/data5/UB/WG/JK/SELLER-98634555/brown-plain-industrial-jute-sack-bag.jpg',
-        inStock: true,
-      },
-      {
-        id: '4',
-        name: 'Oil Bottle',
-        subCategory: 'Groceries',
-        stock: 2,
-        price: 180,
-        sales: 40,
-        image:
-          'https://m.media-amazon.com/images/I/61SQDzxSt3L.jpg',
-        inStock: true,
-      },
-    ],
-  },
-];
+// Removed hardcoded data
+
 
 /* ================= STORE CARD ================= */
 
@@ -123,38 +43,41 @@ const StoreCard = React.memo(
           <Text
             style={[
               styles.status,
-              { color: store.status ? '#4caf50' : '#ff4d4d' },
+              { color: store.isActive !== false ? COLORS.success : COLORS.error },
             ]}
           >
-            {store.status ? 'Active' : 'Inactive'}
+            {store.isActive !== false ? 'Active' : 'Inactive'}
           </Text>
         </View>
 
-        <Text style={styles.location}>{store.location}</Text>
+        <Text style={styles.location}>{store.address}</Text>
 
         <View style={styles.bottomRow}>
           <TouchableOpacity
             style={styles.inventoryBtn}
             onPress={() => onInventory(store)}
           >
-            <Ionicons name="cube-outline" size={16} color="#25292e" />
+            <Ionicons name="cube-outline" size={16} color={COLORS.background} />
             <Text style={styles.inventoryText}> Inventory</Text>
           </TouchableOpacity>
 
           <Switch
-            value={store.status}
+            value={store.isActive !== false}
             onValueChange={() => onToggle(store)}
+            trackColor={{ false: '#767577', true: COLORS.primary }}
           />
         </View>
       </View>
     </View>
   )
 );
+StoreCard.displayName = 'StoreCard';
 
 /* ================= MAIN COMPONENT ================= */
 
 export default function Stores() {
-  const [stores, setStores] = useState<Store[]>(storeData);
+  const { stores, loading, error, fetchStores, toggleStoreStatus } = useStores();
+  
   const [selectedStore, setSelectedStore] = useState<Store | null>(null);
   const [inventoryVisible, setInventoryVisible] = useState(false);
   const [alertVisible, setAlertVisible] = useState(false);
@@ -169,62 +92,74 @@ export default function Stores() {
     setAlertVisible(true);
   };
 
-  const confirmToggle = () => {
+  const confirmToggle = async () => {
     if (!selectedStore) return;
-
-    setStores(prev =>
-      prev.map(store =>
-        store.id === selectedStore.id
-          ? { ...store, status: !store.status }
-          : store
-      )
-    );
-
-    setAlertVisible(false);
+    const success = await toggleStoreStatus(selectedStore);
+    if (success) {
+      setAlertVisible(false);
+    }
   };
 
   return (
     <View style={styles.container}>
       <Text style={styles.heading}>Stores</Text>
+      
+      {error ? (
+        <View style={styles.errorBox}>
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity style={styles.retryBtn} onPress={fetchStores}>
+            <Text style={styles.retryText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
 
-      <FlatList
-        data={stores}
-        keyExtractor={(item) => item.id}
-        renderItem={({ item }) => (
-          <StoreCard
-            store={item}
-            onInventory={handleInventory}
-            onToggle={handleToggleRequest}
-          />
-        )}
-      />
+      {loading && stores.length === 0 ? (
+        <View style={styles.centerContainer}>
+          <ActivityIndicator size="large" color={COLORS.primary} />
+          <Text style={styles.loadingText}>Loading stores...</Text>
+        </View>
+      ) : (
+        <FlatList
+          data={stores}
+          keyExtractor={(item) => item.id || Math.random().toString()}
+          refreshing={loading}
+          onRefresh={fetchStores}
+          contentContainerStyle={{ paddingBottom: 20 }}
+          renderItem={({ item }) => (
+            <StoreCard
+              store={item}
+              onInventory={handleInventory}
+              onToggle={handleToggleRequest}
+            />
+          )}
+        />
+      )}
 
       {selectedStore && (
         <>
           <InventoryPopup
             visible={inventoryVisible}
-            storeName={selectedStore.name}
-            products={selectedStore.products}
+            store={selectedStore}
             onClose={() => setInventoryVisible(false)}
           />
 
           <CommonAlertModal
             visible={alertVisible}
             title={
-              selectedStore.status
+              selectedStore.isActive !== false
                 ? 'Deactivate Store'
                 : 'Activate Store'
             }
             message={`Products from "${selectedStore.name}" will be ${
-              selectedStore.status
+              selectedStore.isActive !== false
                 ? 'hidden from customers.'
                 : 'visible to customers.'
             }`}
             confirmText={
-              selectedStore.status ? 'Deactivate' : 'Activate'
+              selectedStore.isActive !== false ? 'Deactivate' : 'Activate'
             }
             confirmColor={
-              selectedStore.status ? '#ff4d4d' : '#4caf50'
+              selectedStore.isActive !== false ? COLORS.error : COLORS.success
             }
             onCancel={() => setAlertVisible(false)}
             onConfirm={confirmToggle}
@@ -238,38 +173,117 @@ export default function Stores() {
 /* ================= STYLES ================= */
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#25292e', padding: 20 },
+  container: { 
+    flex: 1, 
+    backgroundColor: COLORS.background, 
+    padding: SPACING.md 
+  },
   heading: {
-    fontSize: 22,
-    color: '#ffd33d',
-    fontWeight: 'bold',
-    marginBottom: 20,
+    fontSize: TYPOGRAPHY.size.xxl,
+    color: COLORS.primary,
+    fontWeight: TYPOGRAPHY.weight.bold,
+    marginBottom: SPACING.md,
   },
   card: {
     flexDirection: 'row',
-    backgroundColor: '#3a3f47',
-    borderRadius: 12,
-    padding: 15,
-    marginBottom: 15,
+    backgroundColor: COLORS.surface,
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.md,
+    marginBottom: SPACING.md,
+    ...SHADOWS.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
-  image: { width: 80, height: 80, borderRadius: 10, marginRight: 15 },
-  rightSection: { flex: 1, justifyContent: 'space-between' },
-  topRow: { flexDirection: 'row', justifyContent: 'space-between' },
-  storeName: { color: '#fff', fontSize: 16, fontWeight: 'bold' },
-  status: { fontWeight: 'bold' },
-  location: { color: '#aaa', marginVertical: 6 },
+  image: { 
+    width: 80, 
+    height: 80, 
+    borderRadius: BORDER_RADIUS.md, 
+    marginRight: SPACING.md 
+  },
+  rightSection: { 
+    flex: 1, 
+    justifyContent: 'space-between' 
+  },
+  topRow: { 
+    flexDirection: 'row', 
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  storeName: { 
+    color: COLORS.text, 
+    fontSize: TYPOGRAPHY.size.md, 
+    fontWeight: TYPOGRAPHY.weight.bold 
+  },
+  status: { 
+    fontWeight: TYPOGRAPHY.weight.bold,
+    fontSize: TYPOGRAPHY.size.xs,
+  },
+  location: { 
+    color: COLORS.textSecondary, 
+    marginVertical: SPACING.xs,
+    fontSize: TYPOGRAPHY.size.sm,
+  },
   bottomRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: SPACING.sm,
   },
   inventoryBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    paddingVertical: 6,
-    paddingHorizontal: 15,
-    borderRadius: 6,
+    backgroundColor: COLORS.primary,
+    paddingVertical: SPACING.xs + 2,
+    paddingHorizontal: SPACING.md,
+    borderRadius: BORDER_RADIUS.sm,
+    ...SHADOWS.sm,
   },
-  inventoryText: { fontWeight: 'bold', color: '#25292e', marginLeft: 5 },
+  inventoryText: { 
+    fontWeight: TYPOGRAPHY.weight.bold, 
+    color: COLORS.white, 
+    marginLeft: SPACING.xs,
+    fontSize: TYPOGRAPHY.size.sm,
+  },
+  input: {
+    color: COLORS.text,
+    fontSize: TYPOGRAPHY.size.sm,
+    padding: 0,
+  },
+  errorBox: {
+    backgroundColor: COLORS.errorLight,
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.md,
+    marginBottom: SPACING.md,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.error,
+  },
+  errorText: { 
+    color: COLORS.error, 
+    flex: 1,
+    fontSize: TYPOGRAPHY.size.sm,
+  },
+  retryBtn: { 
+    paddingHorizontal: SPACING.md,
+    paddingVertical: SPACING.xs, 
+    backgroundColor: COLORS.error, 
+    borderRadius: BORDER_RADIUS.sm 
+  },
+  retryText: { 
+    color: COLORS.white, 
+    fontSize: TYPOGRAPHY.size.xs, 
+    fontWeight: TYPOGRAPHY.weight.bold 
+  },
+  centerContainer: { 
+    flex: 1, 
+    justifyContent: 'center', 
+    alignItems: 'center' 
+  },
+  loadingText: { 
+    color: COLORS.textSecondary, 
+    marginTop: SPACING.sm,
+    fontSize: TYPOGRAPHY.size.sm,
+  },
 });

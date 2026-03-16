@@ -8,7 +8,9 @@ import {
   Text,
   TouchableOpacity,
   View,
+  RefreshControl,
 } from 'react-native';
+import { COLORS } from '@/src/constants/theme';
 
 export default function PulseScreen() {
 
@@ -19,6 +21,15 @@ export default function PulseScreen() {
 
   const [startDate, setStartDate] = useState(new Date());
   const [endDate, setEndDate] = useState(new Date());
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    // Simulate API call
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1500);
+  }, []);
 
   const openPicker = () => {
     setSelectingStart(true);
@@ -68,7 +79,17 @@ export default function PulseScreen() {
   ];
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView 
+        style={styles.container}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={handleRefresh}
+            tintColor={COLORS.primary}
+            colors={[COLORS.primary]}
+          />
+        }
+    >
 
       {/* HEADER */}
       <View style={styles.header}>
@@ -78,7 +99,7 @@ export default function PulseScreen() {
           style={styles.dateBtn}
           onPress={openPicker}
         >
-          <Ionicons name="calendar-outline" size={18} color="#fff" />
+          <Ionicons name="calendar-outline" size={18} color={COLORS.primary} />
           <Text style={styles.dateText}>
             {formatDate(startDate)} - {formatDate(endDate)}
           </Text>
@@ -98,7 +119,7 @@ export default function PulseScreen() {
 
       {/* INFO CARD */}
       <View style={styles.infoCard}>
-        <Ionicons name="information-circle" size={26} color="#ffd33d" />
+        <Ionicons name="information-circle" size={26} color={COLORS.primary} />
         <Text style={styles.infoText}>
           Metrics are collected for all stores in the selected date/time range
         </Text>
@@ -106,7 +127,7 @@ export default function PulseScreen() {
 
       {/* RANGE CARD */}
       <View style={styles.rangeCard}>
-        <Ionicons name="calendar" size={26} color="#ffd33d" />
+        <Ionicons name="calendar" size={26} color={COLORS.primary} />
         <View style={{ marginLeft: 10 }}>
           <Text style={styles.rangeTitle}>Selected Date Range</Text>
           <Text style={styles.rangeValue}>
@@ -123,7 +144,7 @@ export default function PulseScreen() {
             <Ionicons
               name={item.icon as any}
               size={26}
-              color="#ffd33d"
+              color={COLORS.primary}
             />
 
             <View style={styles.metricText}>
@@ -138,7 +159,7 @@ export default function PulseScreen() {
       {/* VISITORS */}
       <View style={styles.visitorCard}>
 
-        <Ionicons name="eye" size={26} color="#ffd33d" />
+        <Ionicons name="eye" size={26} color={COLORS.primary} />
 
         <View style={{ marginLeft: 10 }}>
           <Text style={styles.visitorTitle}>App Visitors</Text>
@@ -160,7 +181,7 @@ const styles = StyleSheet.create({
 
   container: {
     flex: 1,
-    backgroundColor: '#25292e',
+    backgroundColor: COLORS.background,
     padding: 20,
   },
 
@@ -173,25 +194,25 @@ const styles = StyleSheet.create({
 
   heading: {
     fontSize: 22,
-    color: '#ffd33d',
+    color: COLORS.primary,
     fontWeight: 'bold',
   },
 
   dateBtn: {
     flexDirection: 'row',
-    backgroundColor: '#3a3f47',
+    backgroundColor: COLORS.surface,
     padding: 8,
     borderRadius: 8,
     alignItems: 'center',
   },
 
   dateText: {
-    color: '#fff',
+    color: COLORS.text,
     marginLeft: 6,
   },
 
   infoCard: {
-    backgroundColor: '#3a3f47',
+    backgroundColor: COLORS.surface,
     padding: 15,
     borderRadius: 12,
     flexDirection: 'row',
@@ -200,13 +221,13 @@ const styles = StyleSheet.create({
   },
 
   infoText: {
-    color: '#aaa',
+    color: COLORS.textSecondary,
     marginLeft: 10,
     flex: 1,
   },
 
   rangeCard: {
-    backgroundColor: '#3a3f47',
+    backgroundColor: COLORS.surface,
     padding: 15,
     borderRadius: 12,
     flexDirection: 'row',
@@ -215,12 +236,12 @@ const styles = StyleSheet.create({
   },
 
   rangeTitle: {
-    color: '#aaa',
+    color: COLORS.textSecondary,
     fontSize: 12,
   },
 
   rangeValue: {
-    color: '#fff',
+    color: COLORS.text,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -233,7 +254,7 @@ const styles = StyleSheet.create({
 
   metricCard: {
     width: '48%',
-    backgroundColor: '#3a3f47',
+    backgroundColor: COLORS.surface,
     padding: 15,
     borderRadius: 12,
     marginBottom: 15,
@@ -246,18 +267,18 @@ const styles = StyleSheet.create({
   },
 
   metricTitle: {
-    color: '#aaa',
+    color: COLORS.textSecondary,
     fontSize: 12,
   },
 
   metricValue: {
-    color: '#fff',
+    color: COLORS.text,
     fontSize: 16,
     fontWeight: 'bold',
   },
 
   visitorCard: {
-    backgroundColor: '#3a3f47',
+    backgroundColor: COLORS.surface,
     padding: 20,
     borderRadius: 12,
     marginTop: 10,
@@ -266,17 +287,17 @@ const styles = StyleSheet.create({
   },
 
   visitorTitle: {
-    color: '#aaa',
+    color: COLORS.textSecondary,
   },
 
   visitorValue: {
-    color: '#ffd33d',
+    color: COLORS.primary,
     fontSize: 22,
     fontWeight: 'bold',
   },
 
   visitorSub: {
-    color: '#aaa',
+    color: COLORS.textSecondary,
     fontSize: 12,
   },
 

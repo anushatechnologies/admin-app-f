@@ -6,6 +6,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { COLORS, SPACING, BORDER_RADIUS } from '@/src/constants/theme';
 
 type Props = {
   visible: boolean;
@@ -22,7 +23,7 @@ export default function CommonAlertModal({
   title,
   message,
   confirmText,
-  confirmColor = '#4caf50',
+  confirmColor = COLORS.success,
   onCancel,
   onConfirm,
 }: Props) {
@@ -69,22 +70,22 @@ const styles = StyleSheet.create({
 
   modalContainer: {
     width: '85%',
-    backgroundColor: '#3a3f47',
-    borderRadius: 12,
-    padding: 20,
+    backgroundColor: COLORS.surface,
+    borderRadius: BORDER_RADIUS.lg,
+    padding: SPACING.lg - 4,
   },
 
   title: {
     fontSize: 18,
     fontWeight: 'bold',
-    color: '#ffd33d',
-    marginBottom: 10,
+    color: COLORS.primary,
+    marginBottom: SPACING.md - 6,
   },
 
   message: {
-    color: '#fff',
+    color: COLORS.textSecondary,
     fontSize: 14,
-    marginBottom: 20,
+    marginBottom: SPACING.lg - 4,
   },
 
   buttonRow: {
@@ -93,22 +94,22 @@ const styles = StyleSheet.create({
   },
 
   cancelBtn: {
-    marginRight: 15,
+    marginRight: SPACING.md - 1,
   },
 
   cancelText: {
-    color: '#aaa',
+    color: COLORS.textSecondary,
     fontWeight: '600',
   },
 
   confirmBtn: {
-    paddingVertical: 6,
-    paddingHorizontal: 15,
-    borderRadius: 6,
+    paddingVertical: SPACING.sm - 2,
+    paddingHorizontal: SPACING.md - 1,
+    borderRadius: BORDER_RADIUS.sm,
   },
 
   confirmText: {
-    color: '#fff',
+    color: COLORS.white,
     fontWeight: 'bold',
   },
 });

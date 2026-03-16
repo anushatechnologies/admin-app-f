@@ -8,7 +8,9 @@ import {
   Text,
   TouchableOpacity,
   View,
+  RefreshControl,
 } from 'react-native';
+import { COLORS } from '@/src/constants/theme';
 
 type Metric = {
   title: string;
@@ -26,6 +28,15 @@ export default function PulseScreen() {
 
   const [startDate, setStartDate] = useState<Date>(new Date());
   const [endDate, setEndDate] = useState<Date>(new Date());
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    // Simulate API call
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1500);
+  }, []);
 
   const openPicker = () => {
     setSelectingStart(true);
@@ -91,14 +102,24 @@ export default function PulseScreen() {
   ];
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView 
+        style={styles.container}
+        refreshControl={
+            <RefreshControl
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                tintColor={COLORS.primary}
+                colors={[COLORS.primary]}
+            />
+        }
+    >
 
       {/* HEADER */}
       <View style={styles.header}>
         <Text style={styles.heading}>Key Performance Index</Text>
 
         <TouchableOpacity style={styles.dateBtn} onPress={openPicker}>
-          <Ionicons name="calendar-outline" size={18} color="#fff" />
+          <Ionicons name="calendar-outline" size={18} color={COLORS.primary} />
           <Text style={styles.dateText}>
             {formatDate(startDate)} - {formatDate(endDate)}
           </Text>
@@ -228,7 +249,7 @@ const styles = StyleSheet.create({
 
   container: {
     flex: 1,
-    backgroundColor: '#25292e',
+    backgroundColor: COLORS.background,
     padding: 20,
   },
 
@@ -241,26 +262,26 @@ const styles = StyleSheet.create({
 
   heading: {
     fontSize: 20,
-    color: '#ffd33d',
+    color: COLORS.primary,
     fontWeight: 'bold',
   },
 
   dateBtn: {
     flexDirection: 'row',
-    backgroundColor: '#3a3f47',
+    backgroundColor: COLORS.surface,
     padding: 8,
     borderRadius: 8,
     alignItems: 'center',
   },
 
   dateText: {
-    color: '#fff',
+    color: COLORS.text,
     marginLeft: 6,
     fontSize: 12,
   },
 
   infoCard: {
-    backgroundColor: '#3a3f47',
+    backgroundColor: COLORS.surface,
     padding: 15,
     borderRadius: 12,
     flexDirection: 'row',
@@ -269,14 +290,14 @@ const styles = StyleSheet.create({
   },
 
   infoText: {
-    color: '#aaa',
+    color: COLORS.textSecondary,
     marginLeft: 10,
     flex: 1,
     fontSize: 12,
   },
 
   rangeCard: {
-    backgroundColor: '#3a3f47',
+    backgroundColor: COLORS.surface,
     padding: 15,
     borderRadius: 12,
     flexDirection: 'row',
@@ -285,12 +306,12 @@ const styles = StyleSheet.create({
   },
 
   rangeTitle: {
-    color: '#aaa',
+    color: COLORS.textSecondary,
     fontSize: 12,
   },
 
   rangeValue: {
-    color: '#fff',
+    color: COLORS.text,
     fontSize: 16,
     fontWeight: 'bold',
   },
@@ -303,7 +324,7 @@ const styles = StyleSheet.create({
 
   metricCard: {
     width: '48%',
-    backgroundColor: '#3a3f47',
+    backgroundColor: COLORS.surface,
     padding: 15,
     borderRadius: 12,
     marginBottom: 15,
@@ -316,25 +337,25 @@ const styles = StyleSheet.create({
   },
 
   metricTitle: {
-    color: '#fff',
+    color: COLORS.text,
     fontSize: 14,
     fontWeight: 'bold',
   },
 
   metricDescription: {
-    color: '#aaa',
+    color: COLORS.textSecondary,
     fontSize: 12,
     marginTop: 3,
   },
 
   metricCategories: {
-    color: '#ffd33d',
+    color: COLORS.primary,
     fontSize: 11,
     marginTop: 2,
   },
 
   visitorCard: {
-    backgroundColor: '#3a3f47',
+    backgroundColor: COLORS.surface,
     padding: 20,
     borderRadius: 12,
     marginTop: 10,
@@ -343,21 +364,21 @@ const styles = StyleSheet.create({
   },
 
   visitorTitle: {
-    color: '#aaa',
+    color: COLORS.textSecondary,
   },
 
   visitorValue: {
-    color: '#ffd33d',
+    color: COLORS.primary,
     fontSize: 22,
     fontWeight: 'bold',
   },
 
   visitorSub: {
-    color: '#aaa',
+    color: COLORS.textSecondary,
     fontSize: 12,
   },
   sectionCard: {
-    backgroundColor: '#3a3f47',
+    backgroundColor: COLORS.surface,
     padding: 18,
     borderRadius: 12,
     marginBottom: 20,
@@ -370,7 +391,7 @@ const styles = StyleSheet.create({
   },
 
   sectionTitle: {
-    color: '#fff',
+    color: COLORS.text,
     fontSize: 16,
     fontWeight: 'bold',
     marginLeft: 8,
@@ -383,12 +404,12 @@ const styles = StyleSheet.create({
   },
 
   label: {
-    color: '#aaa',
+    color: COLORS.textSecondary,
     fontSize: 13,
   },
 
   value: {
-    color: '#ffd33d',
+    color: COLORS.primary,
     fontWeight: 'bold',
     fontSize: 14,
   },

@@ -1,6 +1,8 @@
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import { useRouter, useFocusEffect } from 'expo-router';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import { COLORS, SPACING, BORDER_RADIUS } from '@/src/constants/theme';
+import React, { useState, useCallback } from 'react';
 import {
   Image,
   Modal,
@@ -9,6 +11,7 @@ import {
   Text,
   TouchableOpacity,
   View,
+  RefreshControl,
 } from 'react-native';
 
 type User = {
@@ -33,13 +36,53 @@ export default function Profile() {
   const [updateVisible,setUpdateVisible]=useState(false)
   const [aboutVisible,setAboutVisible]=useState(false)
   const [logoutVisible,setLogoutVisible]=useState(false)
+  const [refreshing, setRefreshing] = useState(false);
 
-  const user: User = {
-    name: 'Mahesh Babu',
-    email: 'mahesh@example.com',
+  const [localUser, setLocalUser] = useState<User>({
+    name: 'Loading...',
+    email: '',
     accountType: 'Admin Account',
     image: null,
+  });
+
+  const loadUserData = async () => {
+    try {
+      const storedUser = await AsyncStorage.getItem('adminUser');
+      console.log('AsyncStorage adminUser:', storedUser); // Debugging log
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        setLocalUser({
+          name: parsed.name || 'Admin',
+          email: parsed.email || 'No email provided',
+          accountType: parsed.role || 'Admin Account',
+          image: null,
+        });
+      } else {
+        setLocalUser({
+          name: 'Not available',
+          email: 'Please log in again',
+          accountType: 'Admin Account',
+          image: null,
+        });
+      }
+    } catch (e) {
+      console.log('Error loading user data', e);
+    }
   };
+
+  useFocusEffect(
+    useCallback(() => {
+      loadUserData();
+    }, [])
+  );
+
+  const handleRefresh = React.useCallback(async () => {
+    setRefreshing(true);
+    await loadUserData();
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 500);
+  }, []);
 
   const settings: SettingItem[] = [
     {
@@ -98,7 +141,7 @@ export default function Profile() {
         <Ionicons
           name={item.icon}
           size={22}
-          color={item.danger ? '#ff4d4d' : '#ffd33d'}
+          color={item.danger ? '#D32F2F' : COLORS.primary}
         />
       </View>
 
@@ -106,7 +149,7 @@ export default function Profile() {
         <Text
           style={[
             styles.settingTitle,
-            item.danger && { color: '#ff4d4d' },
+            item.danger && { color: '#D32F2F' },
           ]}
         >
           {item.title}
@@ -130,25 +173,35 @@ export default function Profile() {
   );
 
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView 
+        style={styles.container}
+        refreshControl={
+            <RefreshControl
+                refreshing={refreshing}
+                onRefresh={handleRefresh}
+                tintColor={COLORS.primary}
+                colors={[COLORS.primary]}
+            />
+        }
+    >
 
       {/* PROFILE HEADER */}
 
       <View style={styles.profileHeader}>
-        {user.image ? (
-          <Image source={{ uri: user.image }} style={styles.avatar} />
+        {localUser.image ? (
+          <Image source={{ uri: localUser.image }} style={styles.avatar} />
         ) : (
           <View style={styles.avatarPlaceholder}>
-            <Ionicons name="person" size={60} color="#fff" />
+            <Ionicons name="person" size={60} color={COLORS.textSecondary} />
           </View>
         )}
 
-        <Text style={styles.name}>{user.name}</Text>
-        <Text style={styles.email}>{user.email}</Text>
+        <Text style={styles.name}>{localUser.name}</Text>
+        <Text style={styles.email}>{localUser.email}</Text>
 
         <View style={styles.badge}>
           <Text style={styles.badgeText}>
-            {user.accountType}
+            {localUser.accountType}
           </Text>
         </View>
       </View>
@@ -173,7 +226,7 @@ export default function Profile() {
 <View style={styles.overlay}>
 <View style={styles.modalCard}>
 
-<Ionicons name="checkmark-circle" size={70} color="#4caf50"/>
+<Ionicons name="checkmark-circle" size={70} color={COLORS.success}/>
 
 <Text style={styles.modalTitle}>No Updates</Text>
 
@@ -208,7 +261,7 @@ onPress={()=>setUpdateVisible(false)}
 <TouchableOpacity
 onPress={()=>setAboutVisible(false)}
 >
-<Ionicons name="close" size={24} color="#fff"/>
+<Ionicons name="close" size={24} color={COLORS.text}/>
 </TouchableOpacity>
 </View>
 
@@ -243,7 +296,7 @@ AnushaBazaar Business App
 <View style={styles.modalCard}>
 
 <View style={styles.logoCircle}>
-  <Ionicons name="log-out-outline" size={32} color="#25292e" />
+  <Ionicons name="log-out-outline" size={32} color={COLORS.background} />
 </View>
 
 <Text style={styles.modalTitle}>Log Out?</Text>
@@ -261,12 +314,15 @@ onPress={()=>setLogoutVisible(false)}
 <Text style={styles.cancelText}>Cancel</Text>
 </TouchableOpacity>
 
-<TouchableOpacity
-style={styles.logoutBtn}
-onPress={()=>router.replace('/')}
->
-<Text style={styles.logoutText}>Logout</Text>
-</TouchableOpacity>
+            <TouchableOpacity
+              style={styles.logoutBtn}
+              onPress={async () => {
+                await AsyncStorage.multiRemove(['adminToken', 'adminUser']);
+                router.replace('/login');
+              }}
+            >
+              <Text style={styles.logoutText}>Logout</Text>
+            </TouchableOpacity>
 
 </View>
 
@@ -282,7 +338,7 @@ onPress={()=>router.replace('/')}
 
 const styles = StyleSheet.create({
 
-container:{flex:1,backgroundColor:'#25292e'},
+container:{flex:1,backgroundColor:COLORS.background},
 
 profileHeader:{
 alignItems:'center',
@@ -301,26 +357,26 @@ avatarPlaceholder:{
 width:110,
 height:110,
 borderRadius:55,
-backgroundColor:'#3a3f47',
+backgroundColor:COLORS.surface,
 justifyContent:'center',
 alignItems:'center',
 marginBottom:15
 },
 
 name:{
-color:'#fff',
+color:COLORS.text,
 fontSize:20,
 fontWeight:'bold'
 },
 
 email:{
-color:'#aaa',
+color:COLORS.textSecondary,
 marginTop:4
 },
 
 badge:{
 marginTop:8,
-backgroundColor:'#ffd33d',
+backgroundColor:COLORS.primary,
 paddingHorizontal:12,
 paddingVertical:4,
 borderRadius:20
@@ -328,12 +384,12 @@ borderRadius:20
 
 badgeText:{
 fontWeight:'bold',
-color:'#25292e',
+color:COLORS.background,
 fontSize:12
 },
 
 section:{
-backgroundColor:'#3a3f47',
+backgroundColor:COLORS.surface,
 marginHorizontal:15,
 borderRadius:15,
 paddingVertical:5
@@ -347,8 +403,8 @@ paddingHorizontal:15
 },
 
 divider:{
-borderBottomWidth:1.5,
-borderBottomColor:'#555'
+borderBottomWidth:1,
+borderBottomColor:COLORS.border
 },
 
 iconContainer:{
@@ -362,13 +418,13 @@ marginLeft:10
 },
 
 settingTitle:{
-color:'#fff',
+color:COLORS.text,
 fontSize:16,
 fontWeight:'600'
 },
 
 settingSubtitle:{
-color:'#aaa',
+color:COLORS.textSecondary,
 fontSize:12,
 marginTop:2
 },
@@ -382,27 +438,29 @@ alignItems:'center'
 
 modalCard:{
 width:'85%',
-backgroundColor:'#3a3f47',
+backgroundColor:COLORS.background,
 borderRadius:15,
 padding:25,
-alignItems:'center'
+alignItems:'center',
+borderWidth: 1,
+borderColor: COLORS.border,
 },
 
 modalTitle:{
 fontSize:20,
-color:'#fff',
+color:COLORS.text,
 fontWeight:'bold',
 marginTop:10
 },
 
 modalText:{
-color:'#aaa',
+color:COLORS.textSecondary,
 textAlign:'center',
 marginTop:10
 },
 
 modalBtn:{
-backgroundColor:'#ffd33d',
+backgroundColor:COLORS.primary,
 marginTop:20,
 paddingVertical:10,
 paddingHorizontal:25,
@@ -411,7 +469,7 @@ borderRadius:8
 
 btnText:{
 fontWeight:'bold',
-color:'#25292e'
+color:COLORS.background
 },
 
 aboutHeader:{
@@ -422,7 +480,7 @@ marginBottom:10
 },
 
 aboutTitle:{
-color:'#fff',
+color:COLORS.text,
 fontSize:18,
 fontWeight:'bold'
 },
@@ -431,7 +489,7 @@ logoCircle:{
 width:70,
 height:70,
 borderRadius:35,
-backgroundColor:'#ffd33d',
+backgroundColor:COLORS.primary,
 justifyContent:'center',
 alignItems:'center',
 marginVertical:10
@@ -440,27 +498,27 @@ marginVertical:10
 logoText:{
 fontSize:24,
 fontWeight:'bold',
-color:'#25292e'
+color:COLORS.background
 },
 
 appName:{
-color:'#fff',
+color:COLORS.text,
 fontSize:20,
 fontWeight:'bold'
 },
 
 appSub:{
-color:'#aaa',
+color:COLORS.textSecondary,
 marginTop:4
 },
 
 version:{
-color:'#ffd33d',
+color:COLORS.primary,
 marginTop:6
 },
 
 copy:{
-color:'#666',
+color:COLORS.textSecondary,
 fontSize:12,
 marginTop:10
 },
@@ -475,18 +533,18 @@ marginRight:20
 },
 
 cancelText:{
-color:'#aaa'
+color:COLORS.textSecondary
 },
 
 logoutBtn:{
-backgroundColor:'#ff4d4d',
+backgroundColor:COLORS.error,
 paddingVertical:8,
 paddingHorizontal:18,
 borderRadius:6
 },
 
 logoutText:{
-color:'#fff',
+color:COLORS.white,
 fontWeight:'bold'
 }
 

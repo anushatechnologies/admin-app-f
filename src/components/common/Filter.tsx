@@ -9,6 +9,7 @@ import {
     TouchableOpacity,
     View,
 } from 'react-native';
+import { COLORS, SPACING, BORDER_RADIUS } from '@/src/constants/theme';
 
 type Props = {
   visible: boolean;
@@ -69,7 +70,7 @@ export default function OrderFilter({ visible, onClose, onApply }: Props) {
           <View style={styles.header}>
             <Text style={styles.title}>Filter Orders</Text>
             <TouchableOpacity onPress={onClose}>
-              <Ionicons name="close" size={26} color="#fff" />
+              <Ionicons name="close" size={26} color={COLORS.white} />
             </TouchableOpacity>
           </View>
 
@@ -97,7 +98,7 @@ export default function OrderFilter({ visible, onClose, onApply }: Props) {
               setShowDatePicker(true);
             }}
           >
-            <Ionicons name="calendar-outline" size={18} color="#ffd33d" />
+            <Ionicons name="calendar-outline" size={18} color={COLORS.primary} />
             <Text style={styles.customText}>Custom Date</Text>
           </TouchableOpacity>
 
@@ -168,10 +169,10 @@ const styles = StyleSheet.create({
   },
 
   container: {
-    backgroundColor: '#25292e',
-    padding: 20,
-    borderTopLeftRadius: 20,
-    borderTopRightRadius: 20,
+    backgroundColor: COLORS.background,
+    padding: SPACING.lg - 4,
+    borderTopLeftRadius: BORDER_RADIUS.lg + 8,
+    borderTopRightRadius: BORDER_RADIUS.lg + 8,
   },
 
   header: {
@@ -180,83 +181,83 @@ const styles = StyleSheet.create({
   },
 
   title: {
-    color: '#ffd33d',
+    color: COLORS.primary,
     fontSize: 18,
     fontWeight: 'bold',
   },
 
   subtitle: {
-    color: '#aaa',
-    marginVertical: 10,
+    color: COLORS.textSecondary,
+    marginVertical: SPACING.md - 6,
   },
 
   section: {
-    color: '#aaa',
-    marginTop: 15,
+    color: COLORS.textSecondary,
+    marginTop: SPACING.md - 1,
   },
 
   row: {
     flexDirection: 'row',
-    marginTop: 10,
+    marginTop: SPACING.sm + 2,
   },
 
   optionBtn: {
     flex: 1,
-    backgroundColor: '#3a3f47',
-    padding: 10,
-    borderRadius: 8,
-    marginRight: 8,
+    backgroundColor: COLORS.surface,
+    padding: SPACING.sm + 2,
+    borderRadius: BORDER_RADIUS.sm + 2,
+    marginRight: SPACING.sm,
     alignItems: 'center',
   },
 
   activeOption: {
-    backgroundColor: '#ffd33d',
+    backgroundColor: COLORS.primary,
   },
 
   optionText: {
-    color: '#fff',
+    color: COLORS.white,
   },
 
   customBtn: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 10,
+    marginTop: SPACING.sm + 2,
   },
 
   customText: {
-    color: '#ffd33d',
-    marginLeft: 5,
+    color: COLORS.primary,
+    marginLeft: SPACING.sm - 3,
   },
 
   footer: {
     flexDirection: 'row',
-    marginTop: 25,
+    marginTop: SPACING.lg + 1,
   },
 
   resetBtn: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#aaa',
-    padding: 12,
-    borderRadius: 10,
-    marginRight: 10,
+    borderColor: COLORS.textSecondary,
+    padding: SPACING.md - 4,
+    borderRadius: BORDER_RADIUS.md,
+    marginRight: SPACING.sm + 2,
     alignItems: 'center',
   },
 
   resetText: {
-    color: '#aaa',
+    color: COLORS.textSecondary,
   },
 
   applyBtn: {
     flex: 1,
-    backgroundColor: '#ffd33d',
-    padding: 12,
-    borderRadius: 10,
+    backgroundColor: COLORS.primary,
+    padding: SPACING.md - 4,
+    borderRadius: BORDER_RADIUS.md,
     alignItems: 'center',
   },
 
   applyText: {
-    color: '#25292e',
+    color: COLORS.background,
     fontWeight: 'bold',
   },
 

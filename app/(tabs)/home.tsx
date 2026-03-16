@@ -8,14 +8,25 @@ import {
   TextInput,
   TouchableOpacity,
   View,
+  RefreshControl,
 } from 'react-native';
 
-import OrderFilter from '@/components/Filter';
+import OrderFilter from '@/src/components/common/Filter';
+import { COLORS, SPACING, BORDER_RADIUS, TYPOGRAPHY, SHADOWS } from '@/src/constants/theme';
 
 export default function Home() {
 
   const [search, setSearch] = useState('');
   const [filterVisible, setFilterVisible] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+
+  const handleRefresh = React.useCallback(() => {
+    setRefreshing(true);
+    // Simulate API call
+    setTimeout(() => {
+      setRefreshing(false);
+    }, 1500);
+  }, []);
 
   /* SAMPLE ORDERS */
 
@@ -46,11 +57,11 @@ export default function Home() {
       <View style={styles.header}>
 
         <View style={styles.searchBox}>
-          <Ionicons name="search" size={18} color="#aaa" />
+          <Ionicons name="search" size={18} color={COLORS.textSecondary} />
 
           <TextInput
             placeholder="Search orders..."
-            placeholderTextColor="#aaa"
+            placeholderTextColor={COLORS.textSecondary}
             value={search}
             onChangeText={setSearch}
             style={styles.input}
@@ -61,7 +72,7 @@ export default function Home() {
           style={styles.filterBtn}
           onPress={() => setFilterVisible(true)}
         >
-          <Ionicons name="filter" size={20} color="#fff" />
+          <Ionicons name="filter" size={20} color={COLORS.primary} />
         </TouchableOpacity>
 
       </View>
@@ -78,7 +89,7 @@ export default function Home() {
           <Ionicons
             name="notifications-outline"
             size={22}
-            color="#fff"
+            color={COLORS.primary}
           />
         </TouchableOpacity>
 
@@ -91,6 +102,14 @@ export default function Home() {
         <FlatList
           data={filteredOrders}
           keyExtractor={(item) => item.id}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={COLORS.primary}
+              colors={[COLORS.primary]}
+            />
+          }
           renderItem={({ item }) => (
 
             <View style={styles.orderCard}>
@@ -154,111 +173,117 @@ export default function Home() {
 }
 
 const styles = StyleSheet.create({
-
   container: {
     flex: 1,
-    backgroundColor: '#25292e',
-    padding: 15,
+    backgroundColor: COLORS.background,
+    padding: SPACING.md,
   },
 
   /* HEADER */
-
   header: {
     flexDirection: 'row',
-    marginBottom: 10,
+    marginBottom: SPACING.sm,
   },
 
   searchBox: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#3a3f47',
-    borderRadius: 8,
-    paddingHorizontal: 10,
+    backgroundColor: COLORS.surfaceVariant,
+    borderRadius: BORDER_RADIUS.md,
+    paddingHorizontal: SPACING.md,
+    ...SHADOWS.sm,
   },
 
   input: {
     flex: 1,
-    color: '#fff',
-    marginLeft: 8,
+    color: COLORS.text,
+    marginLeft: SPACING.sm,
+    fontSize: TYPOGRAPHY.size.sm,
   },
 
   filterBtn: {
-    marginLeft: 10,
-    backgroundColor: '#3a3f47',
-    padding: 10,
-    borderRadius: 8,
+    marginLeft: SPACING.sm,
+    backgroundColor: COLORS.surfaceVariant,
+    padding: SPACING.sm + 2,
+    borderRadius: BORDER_RADIUS.md,
+    ...SHADOWS.sm,
   },
 
   /* SUMMARY ROW */
-
   summaryRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 15,
+    marginVertical: SPACING.md,
   },
 
   summaryText: {
-    color: '#ffd33d',
-    fontWeight: '600',
-    fontSize: 14,
+    color: COLORS.primary,
+    fontWeight: TYPOGRAPHY.weight.semibold,
+    fontSize: TYPOGRAPHY.size.sm,
   },
 
   notificationBtn: {
-    backgroundColor: '#3a3f47',
-    padding: 8,
-    borderRadius: 8,
+    backgroundColor: COLORS.surfaceVariant,
+    padding: SPACING.sm,
+    borderRadius: BORDER_RADIUS.md,
+    ...SHADOWS.sm,
   },
 
   /* ORDER CARD */
-
   orderCard: {
-    backgroundColor: '#3a3f47',
-    padding: 15,
-    borderRadius: 10,
-    marginBottom: 10,
+    backgroundColor: COLORS.surface,
+    padding: SPACING.md,
+    borderRadius: BORDER_RADIUS.lg,
+    marginBottom: SPACING.sm,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    ...SHADOWS.md,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
 
   orderName: {
-    color: '#fff',
-    fontWeight: 'bold',
+    color: COLORS.text,
+    fontWeight: TYPOGRAPHY.weight.bold,
+    fontSize: TYPOGRAPHY.size.md,
   },
 
   orderStatus: {
-    color: '#aaa',
-    marginTop: 4,
+    color: COLORS.textSecondary,
+    fontSize: TYPOGRAPHY.size.xs,
+    marginTop: SPACING.xs,
+    fontWeight: TYPOGRAPHY.weight.medium,
   },
 
   /* EMPTY STATE */
-
   emptyContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
+    paddingBottom: 100,
   },
 
   emptyImage: {
-    width: 120,
-    height: 120,
-    marginBottom: 15,
-    opacity: 0.7,
+    width: 200,
+    height: 200,
+    marginBottom: SPACING.lg,
+    opacity: 0.8,
   },
 
   emptyTitle: {
-    color: '#fff',
-    fontSize: 18,
-    fontWeight: 'bold',
+    color: COLORS.text,
+    fontSize: TYPOGRAPHY.size.xl,
+    fontWeight: TYPOGRAPHY.weight.bold,
   },
 
   emptySubtitle: {
-    color: '#aaa',
-    marginTop: 6,
+    color: COLORS.textSecondary,
+    marginTop: SPACING.sm,
     textAlign: 'center',
-    paddingHorizontal: 40,
+    paddingHorizontal: SPACING.xl,
+    fontSize: TYPOGRAPHY.size.sm,
   },
-
 });
