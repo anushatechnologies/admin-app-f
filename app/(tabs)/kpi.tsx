@@ -10,7 +10,8 @@ import {
   View,
   RefreshControl,
 } from 'react-native';
-import { COLORS } from '@/src/constants/theme';
+import { COLORS, SPACING, BORDER_RADIUS } from '@/src/constants/theme';
+import OrderFilter from '@/src/components/common/Filter';
 
 type Metric = {
   title: string;
@@ -23,12 +24,11 @@ export default function PulseScreen() {
 
   const today = new Date();
 
-  const [showPicker, setShowPicker] = useState(false);
-  const [selectingStart, setSelectingStart] = useState(true);
-
   const [startDate, setStartDate] = useState<Date>(new Date());
   const [endDate, setEndDate] = useState<Date>(new Date());
   const [refreshing, setRefreshing] = useState(false);
+  const [filterVisible, setFilterVisible] = useState(false);
+  const [activeFilters, setActiveFilters] = useState<any>(null);
 
   const handleRefresh = React.useCallback(() => {
     setRefreshing(true);
@@ -38,36 +38,11 @@ export default function PulseScreen() {
     }, 1500);
   }, []);
 
-  const openPicker = () => {
-    setSelectingStart(true);
-    setShowPicker(true);
-  };
-
-  const onChange = (event: any, selectedDate: any) => {
-
-    if (event.type === 'dismissed') {
-      setShowPicker(false);
-      return;
-    }
-
-    if (selectedDate) {
-
-      if (selectingStart) {
-        setStartDate(selectedDate);
-        setSelectingStart(false);
-
-        // open end date picker
-        setTimeout(() => {
-          setShowPicker(true);
-        }, 200);
-
-      } else {
-        setEndDate(selectedDate);
-        setShowPicker(false);
-        setSelectingStart(true);
-      }
-
-    }
+  const handleApplyFilter = (filters: any) => {
+    setActiveFilters(filters);
+    if (filters.startDate) setStartDate(new Date(filters.startDate));
+    if (filters.endDate) setEndDate(new Date(filters.endDate));
+    // Here we would normally refetch the KPI data based on filters
   };
 
   const formatDate = (date: any) => {
@@ -118,7 +93,7 @@ export default function PulseScreen() {
       <View style={styles.header}>
         <Text style={styles.heading}>Key Performance Index</Text>
 
-        <TouchableOpacity style={styles.dateBtn} onPress={openPicker}>
+        <TouchableOpacity style={styles.dateBtn} onPress={() => setFilterVisible(true)}>
           <Ionicons name="calendar-outline" size={18} color={COLORS.primary} />
           <Text style={styles.dateText}>
             {formatDate(startDate)} - {formatDate(endDate)}
@@ -126,16 +101,11 @@ export default function PulseScreen() {
         </TouchableOpacity>
       </View>
 
-      {showPicker && (
-        <DateTimePicker
-          value={selectingStart ? startDate : endDate}
-          mode="date"
-          display={Platform.OS === 'ios' ? 'inline' : 'default'}
-          maximumDate={today}
-          minimumDate={selectingStart ? undefined : startDate}
-          onChange={onChange}
-        />
-      )}
+      <OrderFilter 
+        visible={filterVisible}
+        onClose={() => setFilterVisible(false)}
+        onApply={handleApplyFilter}
+      />
 
       {/* INFO CARD */}
       <View style={styles.infoCard}>
